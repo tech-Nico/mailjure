@@ -1,19 +1,11 @@
-# mail
+# mailjure
 
-A website written in noir. 
+Mailjure is meant to be a prototype developed in clojure which will try to emulate the functionality of a fully flavoured email marketing campaign software.
+For now I'm planning to use Postal as Clojure API to send emails through sendmail.
 
-## Usage
-
-If you use cake, substitute 'lein' with 'cake' below. Everything should work fine.
-
-```bash
-lein deps
-lein run
-```
 
 ## License
 
-Copyright (C) 2011 FIXME
+Copyright (C) 2011 Domenico Balestra
 
 Distributed under the Eclipse Public License, the same as Clojure.
-
