@@ -1,0 +1,69 @@
+<html>
+   <head>
+         <title>Mailjure 0.1</title>
+         <meta charset="iso-8859-1">
+         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+         <link rel="stylesheet" href="/css/layout.css" type="text/css" media="all">
+         <link rel="stylesheet" href="/css/mediaqueries.css" type="text/css" media="all">
+         <script src="/js/jquery-1.7.2.min.js"></script>
+         <script src="/js/jquery-mobilemenu.min.js"></script>
+         <script>
+           $(document).ready(function () {
+           $('.topnav').mobileMenu({
+           combine: false,
+           switchWidth: 600,
+           prependTo: 'nav#topnav'
+           });
+           });
+         </script>
+
+<!--[if lt IE 9]>
+    <link rel="stylesheet" href="styles/ie.css" type="text/css" media="all">
+    <script src="scripts/css3-mediaqueries.min.js"></script>
+    <script src="scripts/html5shiv.min.js"></script>
+<![endif]-->
+<body>
+  <div class="wrapper row1">
+    <header id="header" class="clear">
+      <hgroup class="pad">
+        <h1><a href="/">MAILJURE</a></h1>
+        <h2>The open source marketing campaign software</h2>
+      </hgroup>
+    </header>
+  </div>
+  <div class="wrapper row2">
+    <nav id="topnav">
+      <div class="pad">
+        <ul class="topnav clear">
+          <li class="ctive"><a href="/">Home</a></li>
+          <li><a href="/delivery/list">Delivery</a>
+            <ul>
+              <li><a href="/delivery/new">New</a></li>
+              <li><a href="/delivery/list">List of deliveris</a></li>
+            </ul>
+          </li>
+          <li><a href="/recipient/list">Recipients</a>
+            <ul>
+              <li><a href="/recipient/new">New Recipient</a></li>
+              <li><a href="/recipient/list">List of recipients</a></li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <div id="container">
+      <div class="pad"></div>
+    </div>
+
+    <div class="wrapper row3">
+      <footer id="footer" class="clear">
+        <div class="pad">
+          <p class="fl_left">COpyright &copy; 2012 - All right reserved - <a href="mailjure.com">mailjure.com</a></p>
+          <p class="fl_right">Developed using clojure technologies</p>
+        </div>
+      </footer>
+    </div>
+  </div>
+</body>
+</html>
