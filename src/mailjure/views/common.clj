@@ -10,7 +10,7 @@
 
 (deftemplate layout-list "mailjure/views/container.html"
   [& content-strings]
-  [:#container :> :div.pad]  (html-content  content-strings))
+  [:#container :> :div.pad]  (content  content-strings))
 
 
 (defmulti layout (fn [mode & args] mode) :default :others)

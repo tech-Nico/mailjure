@@ -1,5 +1,5 @@
 <div id="editFormContainer">
-<form action="/delivery/save" method="POST" id="editForm">
+<form action="/delivery/save" method="POST" id="editForm" name="editForm">
 <input type="hidden" name="id"/>
 <input type="hidden" name="save-action"/>
 <script type="text/javascript" src="/js/tiny_mce/tiny_mce.js"></script>
@@ -107,6 +107,22 @@
    <div class="one_third">
      Here goes the body error
    </div>
+</div>
+<div class="button-group">
+                               (javascript-tag
+   <script type="text/javascript" language="javascript">
+
+       function sendDelivery(){
+
+         document.getElementById("edit-form").setAttribute("action", '/delivery/send');
+         return true;
+
+     }
+
+   </script>
+
+   <label for="submit"><input id="submit" type="submit" name="submit"/>Save</label>
+   <label for="Send"><input id="send" type="submit" name="send" onclick="sendDelivery();"/>Save</label>
 </div>
 </form>
 </div>
