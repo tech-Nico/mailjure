@@ -1,0 +1,2 @@
+{ "entity-name" : "delivery"
+ ,"unique-fields" : ["_id", "userdef-id"]}

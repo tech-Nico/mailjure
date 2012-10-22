@@ -19,7 +19,7 @@
   (layout-string content))
 
 (defmethod layout :enlive [mode & content]
-  (println "calling enlive with apply" )
+  (println "calling enlive" )
   (layout-list content))
 
 (defmethod layout :others  [mode & content]

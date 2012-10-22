@@ -3,53 +3,51 @@
          <title>Mailjure 0.1</title>
          <meta charset="iso-8859-1">
          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-         <link rel="stylesheet" href="/css/layout.css" type="text/css" media="all">
-         <link rel="stylesheet" href="/css/mediaqueries.css" type="text/css" media="all">
-         <script src="/js/jquery-1.7.2.min.js"></script>
-         <script src="/js/jquery-mobilemenu.min.js"></script>
-         <script>
-           $(document).ready(function () {
-           $('.topnav').mobileMenu({
-           combine: false,
-           switchWidth: 600,
-           prependTo: 'nav#topnav'
-           });
-           });
-         </script>
-
-<!--[if lt IE 9]>
-    <link rel="stylesheet" href="styles/ie.css" type="text/css" media="all">
-    <script src="scripts/css3-mediaqueries.min.js"></script>
-    <script src="scripts/html5shiv.min.js"></script>
-<![endif]-->
+         <link rel="stylesheet" href="/stylesheets/foundation.css" type="text/css" media="all">
+         <script src="/js/jquery.js"></script>
+         <script src="/js/jquery.foundation.topbar.js"></script>
+<script>
+  $(document).foundationTopBar();
+</script>
+</head>
 <body>
-  <div class="wrapper row1">
-    <header id="header" class="clear">
-      <hgroup class="pad">
-        <h1><a href="/">MAILJURE</a></h1>
-        <h2>The open source marketing campaign software</h2>
-      </hgroup>
-    </header>
-  </div>
-  <div class="wrapper row2">
-    <nav id="topnav">
-      <div class="pad">
-        <ul class="topnav clear">
-          <li class="ctive"><a href="/">Home</a></li>
-          <li><a href="/delivery/list">Delivery</a>
-            <ul>
-              <li><a href="/delivery/new">New</a></li>
-              <li><a href="/delivery/list">List of deliveris</a></li>
-            </ul>
-          </li>
-          <li><a href="/recipient/list">Recipients</a>
-            <ul>
-              <li><a href="/recipient/new">New Recipient</a></li>
-              <li><a href="/recipient/list">List of recipients</a></li>
-            </ul>
-          </li>
+  <div>
+    <nav class="top-bar">
+        <ul>
+          <li class="name"><h1><a href="http://localhost:8080">Mailjure</a></h1></li>
+          <li class="toggle-topbar"><a href="#"/></a></li>
         </ul>
-      </div>
+        <section>
+          <ul class="left">
+            <li class="has-dropdown">
+              <a href="#">Home</a>
+              <ul class="dropdown">
+                <li class="has-dropdown"><a href="/deliver/list">Delivery</a>
+                  <ul class="dropdown">
+                    <li><a href="/delivery/new">New</li>
+                    <li><a href="/delivery/list">List all</a></li>
+                  </ul>
+                </li>
+                <li class="has-dropdown"><a href="/recipients/list">Recipients</a>
+                  <ul class="dropdown">
+                    <li><a href="/recipients/new">New</li>
+                    <li><a href="/recipients/list">List all</a></li>
+                  </ul>
+                </li>
+              </ul>
+            </li>
+          </ul>
+          <ul class="right">
+            <li class="has-dropdown">
+              <a href="#">Setup</a>
+              <ul class="dropdown">
+                <li><a href="/deliver/list">Delivery</a>
+                </li>
+              </ul>
+            </li>
+          </ul>
+
+        </section>
     </nav>
 
     <div id="container">
