@@ -1,0 +1,73 @@
+(ns mailjure.backend.db
+  (:require  [clojure.string :as s])
+             [korma.]
+  (:import  [java.util Date]
+            [com.mongodb MongoException MongoException$DuplicateKey]
+            ))
+
+
+
+(defmulti handle-db-exception (fn [e entity] (class e)))
+
+(defmethod handle-db-exception MongoException$DuplicateKey [e entity]
+  (let [matcher (re-matcher "\$\wid_")])
+  {:error })
+
+(defmethod handle-db-exception :default [e entity]
+  nil)
+
+
+(defmacro with-error-handling [entity & body]
+  `(try
+     ~@body
+     (catch MongoException e# (handle-db-exception e# ~entity))
+     ))
+
+
+(defmacro update-by-id [entity field-map & body]
+  "Generic abstraction for updating an entity by specifying its PK."
+  (if-let [id# (:id ~@field-map)]
+    `(sql-only (update ~entity
+               (set-fields (dissoc :id ~field-map))
+               (set-fields {:last-modified-date (Date.) :modified-by (:id (get-current-user)) })
+               (where { :id id#} )
+               ~@body
+               ))
+      (throw IllegalArgumentException "field-map must contain the primary ID")
+      ))
+
+(defmacro select*-by-id [entity id & body]
+  `(select entity
+    (where {:id id})))
+
+
+(defmacro select*-by [entity query-map & body])
+(defn get-entity-by [entity-name query-map]
+  (if (nil? query-map)
+    (mc/find-maps entity-name)
+    (mc/find-maps entity-name query-map))
+  )
+
+
+(defn insert-entity
+  "Insert an entity into the database. If the entity map doesn't contain an _id the function will generate a new one."
+  [entity-name entity & [{:keys [unique] :as opts}]]
+  (let [id (:_id entity)
+        oid (condp = (nil? id)
+              true  (ObjectId.)
+              false (ObjectId. id))]
+    (with-error-handling entity
+      (mc/insert entity-name (merge entity {:_id oid :creation-date (Date.) :last-modified-date (Date.)}))
+      oid)))
+
+(defn save-entity-by-id
+  "Save an entity into the db. The main idea of this function is to be able to discern whether the
+entity must be inserted or updated."
+  [entity-name entity & [{:as opts}]]
+  (println "Call to save-entity-by-id with options " opts)
+  (if-let [id  (:_id entity)]
+    (let [oid (ObjectId. id)]
+      (mc/update-by-id entity-name oid {"$set" (dissoc (merge entity {:last-modified-date (Date.)}) :_id)})
+       oid)
+    (insert-entity entity-name (dissoc entity :_id) opts))
+  )

@@ -18,7 +18,7 @@
 
 (defpartial render-entity [entity-name id entity]
   (html [ :tr  (if (= id (.toString (:id entity))) {:class "highlight"})
-         (map #(vector :td (edit-link entity-name entity (get (key %1) entity))) entity)]))
+         (map #(vector :td  (edit-link entity-name entity (get (key %1) entity))) entity)]))
 
 
 (defn show-list [entity-name id]
@@ -28,7 +28,7 @@
            (map #(vector :th (key %1)) (d/get-entity-field-names entity-name))
           ]
           [:tbody
-           (map #(render-entity id %) (d/list-entities entity-name))]]]))
+           (map #(render-entity entity-name id %) (d/list-entities entity-name))]]]))
 
 (defpage page-list "/:entity-name/list" {:keys [entity-name]}
   (common/layout :hiccup

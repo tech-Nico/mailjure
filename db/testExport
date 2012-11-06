@@ -1,0 +1,630 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 9.1.6
+-- Dumped by pg_dump version 9.1.6
+-- Started on 2012-11-06 13:21:09 GMT
+
+SET statement_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SET check_function_bodies = false;
+SET client_min_messages = warning;
+
+-- Role: mailjure
+
+DROP ROLE mailjure;
+
+CREATE ROLE mailjure LOGIN
+  ENCRYPTED PASSWORD 'md5d909dfa50a69c5c27d7bf7636f51d0af'
+  NOSUPERUSER INHERIT CREATEDB NOCREATEROLE NOREPLICATION;
+
+--
+-- TOC entry 1961 (class 1262 OID 16393)
+-- Name: mailjure; Type: DATABASE; Schema: -; Owner: postgres
+--
+
+CREATE DATABASE mailjure
+  WITH OWNER = postgres
+       ENCODING = 'UTF8'
+       TABLESPACE = pg_default
+       LC_COLLATE = 'en_GB.UTF-8'
+       LC_CTYPE = 'en_GB.UTF-8'
+       CONNECTION LIMIT = -1;
+GRANT CONNECT, TEMPORARY ON DATABASE mailjure TO public;
+GRANT ALL ON DATABASE mailjure TO postgres;
+GRANT ALL ON DATABASE mailjure TO mailjure WITH GRANT OPTION;
+
+ALTER DATABASE mailjure OWNER TO postgres;
+
+\connect mailjure
+
+SET statement_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SET check_function_bodies = false;
+SET client_min_messages = warning;
+
+--
+-- TOC entry 172 (class 3079 OID 11681)
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
+--
+
+CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
+
+
+--
+-- TOC entry 1964 (class 0 OID 0)
+-- Dependencies: 172
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+
+
+SET search_path = public, pg_catalog;
+
+SET default_tablespace = '';
+
+SET default_with_oids = false;
+
+--
+-- TOC entry 163 (class 1259 OID 16415)
+-- Dependencies: 5
+-- Name: common; Type: TABLE; Schema: public; Owner: mailjure; Tablespace: 
+--
+
+CREATE TABLE common (
+    userdef_id character varying(255) NOT NULL,
+    cdata text,
+    id integer NOT NULL
+);
+
+
+ALTER TABLE public.common OWNER TO mailjure;
+
+--
+-- TOC entry 167 (class 1259 OID 16461)
+-- Dependencies: 163 5
+-- Name: common_id_seq; Type: SEQUENCE; Schema: public; Owner: mailjure
+--
+
+CREATE SEQUENCE common_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.common_id_seq OWNER TO mailjure;
+
+--
+-- TOC entry 1965 (class 0 OID 0)
+-- Dependencies: 167
+-- Name: common_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: mailjure
+--
+
+ALTER SEQUENCE common_id_seq OWNED BY common.id;
+
+
+--
+-- TOC entry 1966 (class 0 OID 0)
+-- Dependencies: 167
+-- Name: common_id_seq; Type: SEQUENCE SET; Schema: public; Owner: mailjure
+--
+
+SELECT pg_catalog.setval('common_id_seq', 1, false);
+
+
+--
+-- TOC entry 161 (class 1259 OID 16394)
+-- Dependencies: 5
+-- Name: mljdelivery; Type: TABLE; Schema: public; Owner: mailjure; Tablespace: 
+--
+
+CREATE TABLE mljdelivery (
+    userdef_id character varying(255) NOT NULL,
+    subject character varying(998) NOT NULL,
+    from_email_address character varying(256) NOT NULL,
+    friendly_name character varying(256),
+    body_html text,
+    body_text text,
+    id integer NOT NULL,
+    last_modified_date timestamp with time zone,
+    creation_date timestamp with time zone[],
+    created_by bigint,
+    modified_by bigint
+);
+
+
+ALTER TABLE public.mljdelivery OWNER TO mailjure;
+
+--
+-- TOC entry 166 (class 1259 OID 16451)
+-- Dependencies: 5 161
+-- Name: delivery_id_seq; Type: SEQUENCE; Schema: public; Owner: mailjure
+--
+
+CREATE SEQUENCE delivery_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.delivery_id_seq OWNER TO mailjure;
+
+--
+-- TOC entry 1967 (class 0 OID 0)
+-- Dependencies: 166
+-- Name: delivery_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: mailjure
+--
+
+ALTER SEQUENCE delivery_id_seq OWNED BY mljdelivery.id;
+
+
+--
+-- TOC entry 1968 (class 0 OID 0)
+-- Dependencies: 166
+-- Name: delivery_id_seq; Type: SEQUENCE SET; Schema: public; Owner: mailjure
+--
+
+SELECT pg_catalog.setval('delivery_id_seq', 2, true);
+
+
+--
+-- TOC entry 171 (class 1259 OID 16565)
+-- Dependencies: 1928 1929 5
+-- Name: mljentities; Type: TABLE; Schema: public; Owner: mailjure; Tablespace: 
+--
+
+CREATE TABLE mljentities (
+    entity_name character varying(50) NOT NULL,
+    last_modified_date timestamp with time zone DEFAULT now(),
+    creation_date timestamp with time zone DEFAULT now(),
+    modified_by bigint,
+    created_by bigint,
+    id integer NOT NULL,
+    configuration text,
+    alias character varying(50)
+);
+
+
+ALTER TABLE public.mljentities OWNER TO mailjure;
+
+--
+-- TOC entry 170 (class 1259 OID 16563)
+-- Dependencies: 5 171
+-- Name: mljEntities_id_seq; Type: SEQUENCE; Schema: public; Owner: mailjure
+--
+
+CREATE SEQUENCE "mljEntities_id_seq"
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public."mljEntities_id_seq" OWNER TO mailjure;
+
+--
+-- TOC entry 1969 (class 0 OID 0)
+-- Dependencies: 170
+-- Name: mljEntities_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: mailjure
+--
+
+ALTER SEQUENCE "mljEntities_id_seq" OWNED BY mljentities.id;
+
+
+--
+-- TOC entry 1970 (class 0 OID 0)
+-- Dependencies: 170
+-- Name: mljEntities_id_seq; Type: SEQUENCE SET; Schema: public; Owner: mailjure
+--
+
+SELECT pg_catalog.setval('"mljEntities_id_seq"', 2, true);
+
+
+--
+-- TOC entry 169 (class 1259 OID 16494)
+-- Dependencies: 1925 1926 5
+-- Name: mljoperator; Type: TABLE; Schema: public; Owner: mailjure; Tablespace: 
+--
+
+CREATE TABLE mljoperator (
+    id integer NOT NULL,
+    username character varying NOT NULL,
+    password character varying(30),
+    last_modified_date timestamp with time zone DEFAULT now(),
+    creation_date timestamp with time zone DEFAULT now(),
+    acl bit varying(255)
+);
+
+
+ALTER TABLE public.mljoperator OWNER TO mailjure;
+
+--
+-- TOC entry 164 (class 1259 OID 16429)
+-- Dependencies: 1922 1923 5
+-- Name: mljrecipient; Type: TABLE; Schema: public; Owner: mailjure; Tablespace: 
+--
+
+CREATE TABLE mljrecipient (
+    userdef_id character varying(255) NOT NULL,
+    firstname character varying(255),
+    lastname character varying(255),
+    email character varying(255),
+    middle_name character varying(255),
+    address1 character varying(255),
+    address2 character varying(255),
+    state character varying(255),
+    region character varying(255),
+    zip_postal_code character varying(50),
+    city character varying(255),
+    country character varying(100),
+    mobile_phone character varying(30),
+    landline_phone character varying(30),
+    id integer NOT NULL,
+    last_modified_date timestamp with time zone DEFAULT now(),
+    creation_date timestamp with time zone DEFAULT now(),
+    modified_by bigint,
+    created_by bigint
+);
+
+
+ALTER TABLE public.mljrecipient OWNER TO mailjure;
+
+--
+-- TOC entry 168 (class 1259 OID 16492)
+-- Dependencies: 5 169
+-- Name: operators_id_seq; Type: SEQUENCE; Schema: public; Owner: mailjure
+--
+
+CREATE SEQUENCE operators_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.operators_id_seq OWNER TO mailjure;
+
+--
+-- TOC entry 1971 (class 0 OID 0)
+-- Dependencies: 168
+-- Name: operators_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: mailjure
+--
+
+ALTER SEQUENCE operators_id_seq OWNED BY mljoperator.id;
+
+
+--
+-- TOC entry 1972 (class 0 OID 0)
+-- Dependencies: 168
+-- Name: operators_id_seq; Type: SEQUENCE SET; Schema: public; Owner: mailjure
+--
+
+SELECT pg_catalog.setval('operators_id_seq', 1, false);
+
+
+--
+-- TOC entry 162 (class 1259 OID 16407)
+-- Dependencies: 5
+-- Name: pk; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE pk
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1
+    CYCLE;
+
+
+ALTER TABLE public.pk OWNER TO postgres;
+
+--
+-- TOC entry 1973 (class 0 OID 0)
+-- Dependencies: 162
+-- Name: pk; Type: SEQUENCE SET; Schema: public; Owner: postgres
+--
+
+SELECT pg_catalog.setval('pk', 1, false);
+
+
+--
+-- TOC entry 165 (class 1259 OID 16441)
+-- Dependencies: 5 164
+-- Name: recipient_id_seq; Type: SEQUENCE; Schema: public; Owner: mailjure
+--
+
+CREATE SEQUENCE recipient_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.recipient_id_seq OWNER TO mailjure;
+
+--
+-- TOC entry 1975 (class 0 OID 0)
+-- Dependencies: 165
+-- Name: recipient_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: mailjure
+--
+
+ALTER SEQUENCE recipient_id_seq OWNED BY mljrecipient.id;
+
+
+--
+-- TOC entry 1976 (class 0 OID 0)
+-- Dependencies: 165
+-- Name: recipient_id_seq; Type: SEQUENCE SET; Schema: public; Owner: mailjure
+--
+
+SELECT pg_catalog.setval('recipient_id_seq', 1, true);
+
+
+--
+-- TOC entry 1920 (class 2604 OID 16463)
+-- Dependencies: 167 163
+-- Name: id; Type: DEFAULT; Schema: public; Owner: mailjure
+--
+
+ALTER TABLE ONLY common ALTER COLUMN id SET DEFAULT nextval('common_id_seq'::regclass);
+
+
+--
+-- TOC entry 1919 (class 2604 OID 16453)
+-- Dependencies: 166 161
+-- Name: id; Type: DEFAULT; Schema: public; Owner: mailjure
+--
+
+ALTER TABLE ONLY mljdelivery ALTER COLUMN id SET DEFAULT nextval('delivery_id_seq'::regclass);
+
+
+--
+-- TOC entry 1927 (class 2604 OID 16568)
+-- Dependencies: 171 170 171
+-- Name: id; Type: DEFAULT; Schema: public; Owner: mailjure
+--
+
+ALTER TABLE ONLY mljentities ALTER COLUMN id SET DEFAULT nextval('"mljEntities_id_seq"'::regclass);
+
+
+--
+-- TOC entry 1924 (class 2604 OID 16497)
+-- Dependencies: 169 168 169
+-- Name: id; Type: DEFAULT; Schema: public; Owner: mailjure
+--
+
+ALTER TABLE ONLY mljoperator ALTER COLUMN id SET DEFAULT nextval('operators_id_seq'::regclass);
+
+
+--
+-- TOC entry 1921 (class 2604 OID 16443)
+-- Dependencies: 165 164
+-- Name: id; Type: DEFAULT; Schema: public; Owner: mailjure
+--
+
+ALTER TABLE ONLY mljrecipient ALTER COLUMN id SET DEFAULT nextval('recipient_id_seq'::regclass);
+
+
+--
+-- TOC entry 1953 (class 0 OID 16415)
+-- Dependencies: 163 1957
+-- Data for Name: common; Type: TABLE DATA; Schema: public; Owner: mailjure
+--
+
+
+
+--
+-- TOC entry 1952 (class 0 OID 16394)
+-- Dependencies: 161 1957
+-- Data for Name: mljdelivery; Type: TABLE DATA; Schema: public; Owner: mailjure
+--
+
+INSERT INTO mljdelivery (userdef_id, subject, from_email_address, friendly_name, body_html, body_text, id, last_modified_date, creation_date, created_by, modified_by) VALUES ('delivery1', 'thesubject', 'sdfadsf@nico.balestra', 'the friendli', 'aksdfa', 'adskfhads', 2, NULL, NULL, NULL, NULL);
+
+
+--
+-- TOC entry 1956 (class 0 OID 16565)
+-- Dependencies: 171 1957
+-- Data for Name: mljentities; Type: TABLE DATA; Schema: public; Owner: mailjure
+--
+
+INSERT INTO mljentities (entity_name, last_modified_date, creation_date, modified_by, created_by, id, configuration, alias) VALUES ('mljdelivery', '2012-11-04 17:56:40.712269+00', '2012-11-04 17:56:40.712269+00', NULL, NULL, 2, '{"pk" : "id", "default-fields" : ["subject", "from_email_address"]}', 'deliveryTable');
+
+
+--
+-- TOC entry 1955 (class 0 OID 16494)
+-- Dependencies: 169 1957
+-- Data for Name: mljoperator; Type: TABLE DATA; Schema: public; Owner: mailjure
+--
+
+
+
+--
+-- TOC entry 1954 (class 0 OID 16429)
+-- Dependencies: 164 1957
+-- Data for Name: mljrecipient; Type: TABLE DATA; Schema: public; Owner: mailjure
+--
+
+
+
+--
+-- TOC entry 1935 (class 2606 OID 16477)
+-- Dependencies: 163 163 1958
+-- Name: common_pk; Type: CONSTRAINT; Schema: public; Owner: mailjure; Tablespace: 
+--
+
+ALTER TABLE ONLY common
+    ADD CONSTRAINT common_pk PRIMARY KEY (id);
+
+
+--
+-- TOC entry 1931 (class 2606 OID 16475)
+-- Dependencies: 161 161 1958
+-- Name: delvery_id; Type: CONSTRAINT; Schema: public; Owner: mailjure; Tablespace: 
+--
+
+ALTER TABLE ONLY mljdelivery
+    ADD CONSTRAINT delvery_id PRIMARY KEY (id);
+
+
+--
+-- TOC entry 1937 (class 2606 OID 16424)
+-- Dependencies: 163 163 1958
+-- Name: idx_common_udef_id; Type: CONSTRAINT; Schema: public; Owner: mailjure; Tablespace: 
+--
+
+ALTER TABLE ONLY common
+    ADD CONSTRAINT idx_common_udef_id UNIQUE (userdef_id);
+
+
+--
+-- TOC entry 1945 (class 2606 OID 16570)
+-- Dependencies: 171 171 1958
+-- Name: mljEntity_pk; Type: CONSTRAINT; Schema: public; Owner: mailjure; Tablespace: 
+--
+
+ALTER TABLE ONLY mljentities
+    ADD CONSTRAINT "mljEntity_pk" PRIMARY KEY (id);
+
+
+--
+-- TOC entry 1943 (class 2606 OID 16504)
+-- Dependencies: 169 169 1958
+-- Name: operators_pk; Type: CONSTRAINT; Schema: public; Owner: mailjure; Tablespace: 
+--
+
+ALTER TABLE ONLY mljoperator
+    ADD CONSTRAINT operators_pk PRIMARY KEY (id);
+
+
+--
+-- TOC entry 1939 (class 2606 OID 16473)
+-- Dependencies: 164 164 1958
+-- Name: recipient_pk; Type: CONSTRAINT; Schema: public; Owner: mailjure; Tablespace: 
+--
+
+ALTER TABLE ONLY mljrecipient
+    ADD CONSTRAINT recipient_pk PRIMARY KEY (id);
+
+
+--
+-- TOC entry 1941 (class 2606 OID 16440)
+-- Dependencies: 164 164 1958
+-- Name: recipient_udef_id_idx; Type: CONSTRAINT; Schema: public; Owner: mailjure; Tablespace: 
+--
+
+ALTER TABLE ONLY mljrecipient
+    ADD CONSTRAINT recipient_udef_id_idx UNIQUE (userdef_id);
+
+
+--
+-- TOC entry 1933 (class 2606 OID 16403)
+-- Dependencies: 161 161 1958
+-- Name: userdef_id_idx; Type: CONSTRAINT; Schema: public; Owner: mailjure; Tablespace: 
+--
+
+ALTER TABLE ONLY mljdelivery
+    ADD CONSTRAINT userdef_id_idx UNIQUE (userdef_id);
+
+
+--
+-- TOC entry 1947 (class 2606 OID 16661)
+-- Dependencies: 161 1942 169 1958
+-- Name: delivery_created_by; Type: FK CONSTRAINT; Schema: public; Owner: mailjure
+--
+
+ALTER TABLE ONLY mljdelivery
+    ADD CONSTRAINT delivery_created_by FOREIGN KEY (modified_by) REFERENCES mljoperator(id);
+
+
+--
+-- TOC entry 1946 (class 2606 OID 16656)
+-- Dependencies: 1942 169 161 1958
+-- Name: delivery_modified_by; Type: FK CONSTRAINT; Schema: public; Owner: mailjure
+--
+
+ALTER TABLE ONLY mljdelivery
+    ADD CONSTRAINT delivery_modified_by FOREIGN KEY (modified_by) REFERENCES mljoperator(id);
+
+
+--
+-- TOC entry 1950 (class 2606 OID 16686)
+-- Dependencies: 1942 171 169 1958
+-- Name: mljentity_created_by_idx; Type: FK CONSTRAINT; Schema: public; Owner: mailjure
+--
+
+ALTER TABLE ONLY mljentities
+    ADD CONSTRAINT mljentity_created_by_idx FOREIGN KEY (created_by) REFERENCES mljoperator(id);
+
+
+--
+-- TOC entry 1951 (class 2606 OID 16691)
+-- Dependencies: 1942 169 171 1958
+-- Name: mljentity_modified_by_idx; Type: FK CONSTRAINT; Schema: public; Owner: mailjure
+--
+
+ALTER TABLE ONLY mljentities
+    ADD CONSTRAINT mljentity_modified_by_idx FOREIGN KEY (modified_by) REFERENCES mljoperator(id);
+
+
+--
+-- TOC entry 1948 (class 2606 OID 16676)
+-- Dependencies: 164 169 1942 1958
+-- Name: recipient_createdby; Type: FK CONSTRAINT; Schema: public; Owner: mailjure
+--
+
+ALTER TABLE ONLY mljrecipient
+    ADD CONSTRAINT recipient_createdby FOREIGN KEY (created_by) REFERENCES mljoperator(id);
+
+
+--
+-- TOC entry 1949 (class 2606 OID 16681)
+-- Dependencies: 169 164 1942 1958
+-- Name: recipient_modifiedby; Type: FK CONSTRAINT; Schema: public; Owner: mailjure
+--
+
+ALTER TABLE ONLY mljrecipient
+    ADD CONSTRAINT recipient_modifiedby FOREIGN KEY (modified_by) REFERENCES mljoperator(id);
+
+
+--
+-- TOC entry 1963 (class 0 OID 0)
+-- Dependencies: 5
+-- Name: public; Type: ACL; Schema: -; Owner: postgres
+--
+
+REVOKE ALL ON SCHEMA public FROM PUBLIC;
+REVOKE ALL ON SCHEMA public FROM postgres;
+GRANT ALL ON SCHEMA public TO postgres;
+GRANT ALL ON SCHEMA public TO PUBLIC;
+
+
+--
+-- TOC entry 1974 (class 0 OID 0)
+-- Dependencies: 162
+-- Name: pk; Type: ACL; Schema: public; Owner: postgres
+--
+
+REVOKE ALL ON SEQUENCE pk FROM PUBLIC;
+REVOKE ALL ON SEQUENCE pk FROM postgres;
+GRANT ALL ON SEQUENCE pk TO postgres;
+
+
+-- Completed on 2012-11-06 13:21:09 GMT
+
+--
+-- PostgreSQL database dump complete
+--
+
