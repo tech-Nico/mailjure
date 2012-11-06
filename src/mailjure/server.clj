@@ -1,18 +1,17 @@
 (ns mailjure.server
   (:require [noir.server :as server]
-            [monger.core :as m]
-            [mailjure.backend.core :as b]))
+            [mailjure.backend.core :as mbc])
+  (:use [korma.db]))
 
 (server/load-views "src/mailjure/views")
 
-(defn- setup-db []
-  (m/connect! {:host "localhost"})
-  (m/use-db! "mailjure")
-  (b/init))
-
+(defdb prod (postgres {:db "mailjure"
+                       :user "mailjure"
+                       :password "mailjure"
+                       :delimiters ""}))
 
 (defn -main [& m]
-  (setup-db)
+  (mbc/init-db prod)
   (let [mode (keyword (or (first m) :dev))
         port (Integer. (get (System/getenv) "PORT" "8080"))]
     (server/start port {:mode mode

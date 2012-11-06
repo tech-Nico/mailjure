@@ -1,2 +1,37 @@
 { "entity-name" : "delivery"
+ ,"fields" : {
+           "_id" : {
+                      "label" : "Primary Key"
+                      ,"unique" : "true"
+                      ,"mandatory" : "true"
+                  }
+           ,"userdef-id" : {
+                         "label" : "Userdef Key"
+                        ,"unique" : "true"
+                        ,"max-length" : "20"
+                        ,"mandatory" : "true"
+           }
+           ,"from-address" : {
+                           "label" : "From email address"
+                          ,"mandatory" : "true"
+
+           }
+           ,"recipients" : {
+                          "label" : "Recipients"
+                         ,"mandatory" : "true"
+           }
+           ,"subject" : {
+                      "label" : "Subject"
+                     ,"mandatory" : "true"
+           }
+           ,"contentHTML" : {
+                           "label" : "HTML Content"
+                          ,"mandatory" : "true"
+           }
+           ,"contentPlain" : {
+                            "label" : "Plain Content"
+                            }
+
+
+ }
  ,"unique-fields" : ["_id", "userdef-id"]}
