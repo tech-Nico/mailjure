@@ -5,7 +5,7 @@
                            [korma "0.3.0-beta9"]
                            [postgresql "9.1-901.jdbc4"]
                            [enlive "1.0.1"]
-                           [noir "1.3.0-beta3"]
+                           [noir "1.3.0-beta9"]
                            [cheshire "4.0.3"]]
 
                            :main mailjure.server)

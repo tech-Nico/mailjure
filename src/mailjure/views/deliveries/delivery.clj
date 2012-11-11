@@ -12,23 +12,35 @@
 
 
 ;;;;;;;;;;;;;;;LIST OF DELIVERIES;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defmacro edit-link [entity-name entity label]
-  `(link-to (str "/" ~entity-name "/edit/" (get ~entity :id)) ~label))
+(defn edit-link [entity-name entity label]
+  (link-to (str "/" entity-name "/edit/" (get entity :id)) label))
 
 
-(defpartial render-entity [entity-name id entity]
-  (html [ :tr  (if (= id (.toString (:id entity))) {:class "highlight"})
-         (map #(vector :td  (edit-link entity-name entity (get (key %1) entity))) entity)]))
+(defn get-field-label [field-conf-map]
+  (let [labels ((val field-conf-map) :label)
+        label  (filter #(= (key %1) :en_gb) labels)]
+    label))
+
+
+(defpartial render-row [entity-name fields id row]
+  (html [ :tr  (if (= id (.toString (:id row))) {:class "highlight"})
+           (map #(vector :td  (edit-link entity-name row ((key %1) row))) fields)]))
+
 
 
 (defn show-list [entity-name id]
-  (html [:div.row.display.centered
-         [:table
-          [:thead
-           (map #(vector :th (key %1)) (d/get-entity-field-names entity-name))
-          ]
-          [:tbody
-           (map #(render-entity entity-name id %) (d/list-entities entity-name))]]]))
+  (let [query (d/list-entities entity-name)
+        field-conf (->> ((:configuration query) :fields)
+                        (filter #(>= (read-string (get (val %1)  :order)) 0))
+                        (sort-by #(get-in (val %1) [:order])))
+        rows (:query query)]
+    (html [:div.row.display.centered
+           [:table
+            [:thead
+             (map #(vector :th (get-field-label %1)) field-conf)
+            ]
+            [:tbody
+             (map #(render-row entity-name field-conf id %) rows)]]])))
 
 (defpage page-list "/:entity-name/list" {:keys [entity-name]}
   (common/layout :hiccup

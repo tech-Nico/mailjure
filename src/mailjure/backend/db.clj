@@ -1,7 +1,56 @@
 (ns mailjure.backend.db
   (:require  [clojure.string :as s]
-             [korma.core :as k])
+             [korma.core :as k]
+             [cheshire.core :as ch] )
+
   (:import  [java.util Date]))
+
+(defn to-entity-name [entity-name]
+  (if (<= (.lastIndexOf entity-name "Table") 0)
+    (str entity-name "Table")
+    entity-name))
+
+(defn resolve-entity-name [entity-name]
+  (eval (symbol (to-entity-name entity-name))))
+
+
+(defn resolve-table [entity-name]
+  (println "The table name to resolve:" entity-name)
+        (->> entity-name
+             to-entity-name
+             (symbol "mailjure.backend.core")
+             eval
+             ))
+
+
+(defn extract-table-name [body]
+  (println "The body "  (name (nth body 1)))
+  (-> (nth body 1)
+      var-get)
+  :name)
+
+(defmacro with-conf [options entity-name & body]
+  "merge-with-conf must surround a Korma select form. This macro will assoc the select result map with
+a new map containg the entity configuration. This is to allow the presentation layer to
+take the necessary actions when rendering the data. In a future revision, this macro could
+check whether the entity definition has already been cached before hitting
+the database."
+
+  `(let [has-conf# (get ~options :include-conf false)
+         conf# (if has-conf#
+                 (->  (k/select "mljentities"
+                                (k/fields :configuration)
+                                (k/where {:alias (to-entity-name ~entity-name)}))
+                      first
+                      :configuration
+                      (ch/parse-string true)))]
+
+     { :configuration (if has-conf# conf#)
+      :configuration-debug (k/sql-only (k/select "mljentities"
+                                       (k/fields :configuration)
+                                       (k/where (or  {:entity_name [= (to-entity-name ~entity-name)]}
+                                                     {:alias [= (to-entity-name ~entity-name)]}))))
+      :query ~@body}))
 
 
 
@@ -30,7 +79,8 @@
           (k/where ~@query-map)
           ~@body))
 
-(defn select-all [entity-name ]
-  (let [entities (k/select (eval (symbol (str "mailjure.backend.core/" entity-name "Table"))) )]
-    (println "Select all returned " entities)
-    entities))
+
+(defmacro select-all [entity-name options & body]
+  `(with-conf ~options ~entity-name
+    (k/select  (resolve-table ~entity-name)
+               ~@body)))
