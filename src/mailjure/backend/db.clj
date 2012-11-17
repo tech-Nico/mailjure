@@ -15,7 +15,6 @@
 
 
 (defn resolve-table [entity-name]
-  (println "The table name to resolve:" entity-name)
         (->> entity-name
              to-entity-name
              (symbol "mailjure.backend.core")
@@ -24,7 +23,6 @@
 
 
 (defn extract-table-name [body]
-  (println "The body "  (name (nth body 1)))
   (-> (nth body 1)
       var-get)
   :name)
@@ -35,7 +33,6 @@ a new map containg the entity configuration. This is to allow the presentation l
 take the necessary actions when rendering the data. In a future revision, this macro could
 check whether the entity definition has already been cached before hitting
 the database."
-
   `(let [has-conf# (get ~options :include-conf false)
          conf# (if has-conf#
                  (->  (k/select "mljentities"
@@ -46,11 +43,7 @@ the database."
                       (ch/parse-string true)))]
 
      { :configuration (if has-conf# conf#)
-      :configuration-debug (k/sql-only (k/select "mljentities"
-                                       (k/fields :configuration)
-                                       (k/where (or  {:entity_name [= (to-entity-name ~entity-name)]}
-                                                     {:alias [= (to-entity-name ~entity-name)]}))))
-      :query ~@body}))
+       :query ~@body}))
 
 
 
@@ -68,14 +61,14 @@ the database."
 
 
 (defmacro select-by-id [entity id & body]
-  `(k/select ~entity
+  `(k/select (resolve-table ~entity)
            (k/where {:id ~id})
            ~@body
            ))
 
 
 (defmacro select-by [entity query-map & body]
-  `(k/select ~entity
+  `(k/select (resolve-table ~entity)
           (k/where ~@query-map)
           ~@body))
 

@@ -53,3 +53,7 @@ If no options are specified list-entities will return only the first mailjure.mo
 (defn get-entity-field-names [entity-name]
 "Given an entity name, return the list of labels "
   )
+
+(defn get-entity-by-id [entity-name id & fields]
+	(with-check-validity entity-name
+        (db/select-by-id entity-name id)))
