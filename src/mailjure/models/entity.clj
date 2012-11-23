@@ -2,7 +2,7 @@
   (:require  [mailjure.backend.db :as db]
              [mailjure.backend.core :as mcore]
              [cheshire.core :as ch])
-  (:use          [korma.core])
+  (:use      [korma.core])
   (:import   [java.util Date]))
 
 
@@ -30,12 +30,6 @@ Given that mailjure will give access to the entit"
       ~@body
      (throw (IllegalArgumentException. (str ~entity-name " is not a valid entity!" ))))))
 
-(defn get-entity [entity-name entity]
-  (with-check-validity entity-name
-    (cond
-     (not (nil? (:_id entity))) (db/select-by entity-name {:id (:_id entity)})
-     (not (nil? (:userdef-id entity))) (db/select-by entity-name {:userdef-id (:userdef-id entity)})
-     :else nil)))
 
 (defn list-entities [entity-name & options]
   "Select all instances of entity-name from the database. This function will check first
@@ -54,6 +48,11 @@ If no options are specified list-entities will return only the first mailjure.mo
 "Given an entity name, return the list of labels "
   )
 
-(defn get-entity-by-id [entity-name id & fields]
-	(with-check-validity entity-name
-        (db/select-by-id entity-name id)))
+
+
+(defn get-entity [entity-name query]
+;The idea is to have the query modeled as a DSL and then have it translated
+;into Kormaland
+
+  (with-check-validity entity-name
+    (db/select-by entity-name query {:include-conf true})))

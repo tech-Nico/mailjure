@@ -15,11 +15,11 @@
 
 
 (defn resolve-table [entity-name]
-        (->> entity-name
-             to-entity-name
-             (symbol "mailjure.backend.core")
-             eval
-             ))
+  (->> entity-name
+       to-entity-name
+       (symbol "mailjure.backend.core")
+       eval
+       ))
 
 
 (defn extract-table-name [body]
@@ -28,11 +28,15 @@
   :name)
 
 (defmacro with-conf [options entity-name & body]
-  "merge-with-conf must surround a Korma select form. This macro will assoc the select result map with
+  "with-conf must surround a Korma select form. This macro will assoc the select result map with
 a new map containg the entity configuration. This is to allow the presentation layer to
 take the necessary actions when rendering the data. In a future revision, this macro could
 check whether the entity definition has already been cached before hitting
-the database."
+the database.
+In order for the configuration map to be merged with the result, the 'options' map must contain
+a key :include-conf set to anything but false.
+Refactoing so that the macro add a new meta containing the configuration so that the select
+result doesn't mix with the query results"
   `(let [has-conf# (get ~options :include-conf false)
          conf# (if has-conf#
                  (->  (k/select "mljentities"
@@ -42,9 +46,22 @@ the database."
                       :configuration
                       (ch/parse-string true)))]
 
-     { :configuration (if has-conf# conf#)
-       :query ~@body}))
+     (with-meta {:query ~@body}
+       {:configuration (if has-conf# conf#)})))
 
+
+
+(defmacro select-by [entity-name query-map & [options body]]
+  `(with-conf ~options ~entity-name
+     (k/select (resolve-table ~entity-name)
+               (k/where ~query-map)
+               ~@body)))
+
+
+(defmacro select-all [entity-name options & body]
+  `(with-conf ~options ~entity-name
+    (k/select  (resolve-table ~entity-name)
+               ~@body)))
 
 
 (defmacro update-by-id [entity field-map & body]
@@ -56,24 +73,17 @@ the database."
                (k/where { :id id#} )
                ~@body
                ))
-      (throw IllegalArgumentException "field-map must contain the primary ID")
-      ))
+      (throw IllegalArgumentException "field-map must contain the primary ID")))
 
-
-(defmacro select-by-id [entity id & body]
-  `(k/select (resolve-table ~entity)
-           (k/where {:id ~id})
-           ~@body
-           ))
-
-
-(defmacro select-by [entity query-map & body]
-  `(k/select (resolve-table ~entity)
-          (k/where ~@query-map)
-          ~@body))
-
-
-(defmacro select-all [entity-name options & body]
-  `(with-conf ~options ~entity-name
-    (k/select  (resolve-table ~entity-name)
-               ~@body)))
+(defn get-field-conf [entity-name field-name]
+  "Given an entity-name and a field-name, returns the configuration of that field
+  stored into the mljentities table"
+  (let [conf (->  (k/select "mljentities"
+                                (k/fields :configuration)
+                                (k/where {:alias (to-entity-name entity-name)}))
+                      first
+                      :configuration
+                      (ch/parse-string true))]
+    (-> conf
+        (get :fields)
+        (get (keyword field-name)))))
