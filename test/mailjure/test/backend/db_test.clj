@@ -1,30 +1,46 @@
 (ns mailjure.test.backend.db_test
-  (:require [mailjure.test.backend.helper :as h]
+  (:require [mailjure.server :as s]
             [mailjure.backend.db :as db]
-            [mailjure.models.delivery]
-            )
-  (:use [clojure.test])
-  (:import [mailjure.models.delivery DeliveryContent Delivery]
-           [org.bson.types ObjectId]))
+            [mailjure.backend.core :as c]
+            [mailjure.models.entity :as ent])
+  (:import [java.sql Timestamp])
+  (:use [clojure.test]))
 
-(h/setup-db)
+(c/init-db s/prod)
 
-(def test-content (DeliveryContent. "The HTML content for the test-create-new-entity test case" "The TEXT content"))
+(deftest test-conf
+  (println "CONFIGURATION " @db/entities-config)
+  (is (not (nil? @db/entities-config)) "The entities configuration is still empty"))
 
-(def rand-id (str "myuserdef-id" (rand-int 1000)))
+(deftest test-conf-delivery
+  (println "****** DELIVERY TABLE CONFIGURATION: " (:deliveryTable @db/entities-config))
+  (is (not (nil? (:deliveryTable @db/entities-config))) "Unable to find deliveryTable configuration"))
 
-(def test-delivery-1 (Delivery. nil rand-id "nicobalestra@gmail.com" "test@mailjure.com" "the subject" test-content))
+(deftest test-get-conf-delivery
+  (let [conf (db/get-entity-conf "delivery")]
+    (is (not (nil? conf)) "Couldn't retrieve the configuration of delivery")))
 
-(def test-delivery-1-id ( db/save-entity-by-id "delivery" test-delivery-1))
+(deftest test-get=field=conf
+  (let [conf (db/get-field-conf "delivery" "id")]
+    (is (not (nil? conf)) "FIeld conf is nil while it should not be." )) )
 
-(println "Testing creation of a new entity [delivery]" )
+(def base-entity {:id 2 :subject "the subject" :friendly_name "friendly name" :body_html "the body"})
 
-(deftest test-create-new-entity
-  (is (= test-delivery-1-id (:_id (db/get-entity-by-id "delivery" test-delivery-1-id)))))
+(deftest test-db-update-entity
+  (let [ent-name "delivery"
+        ent {:id 2 :subject "abc" :friendly_name "the friendly name" }
+        res (db/save-entity ent-name ent)]
+    (is (not ( nil? res)) (str "Error while saving the entity " ent-name ". The error was " res))))
 
-(deftest test-get-entity
-  (is (not (nil? (db/get-entity-by "delivery" {:userdef-id rand-id})))
-      (str "Searching a \"delivery\" by \"userdef-id\" = " rand-id " didn't find any document."))
-  (println "db_test.clj - get-entity-by returns: " (db/get-entity-by "delivery" {:userdef-id rand-id}))
-  (is (= test-delivery-1-id (:_id (db/get-entity-by-id "delivery" test-delivery-1-id)))
-      (str "Searching a \"delivery\" with id = " test-delivery-1-id " didn't find any document.")) )
+(deftest test-entity-update-entity
+  (let [ent-name "delivery"
+        src (ent/save-entity ent-name base-entity)
+        ]
+    (is (not (nil? src) ) "Error while saving the entity")))
+
+(deftest test-entity-update-entity
+  (let [ent-name "delivery"
+        ent (merge base-entity {:from_email_address "the from"}  )
+        src (ent/save-entity ent-name base-entity)
+        ]
+    (is (not (nil? src) ) "Error while saving the entity")))

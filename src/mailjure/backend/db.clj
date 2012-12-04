@@ -1,20 +1,27 @@
 (ns mailjure.backend.db
   (:require  [clojure.string :as s]
              [korma.core :as k]
-             [cheshire.core :as ch] )
+             [clj-time.core :as t]
+             [clj-time.format :as tf])
 
-  (:import  [java.util Date]))
+  (:import  [java.sql Timestamp]))
 
-(defn to-entity-name [entity-name]
+(defonce entities-config (atom {}) )
+
+(defn to-entity-name
+"Convert a 'logical' table name into a table name as store onto the database"
+  [entity-name]
   (if (<= (.lastIndexOf entity-name "Table") 0)
     (str entity-name "Table")
     entity-name))
 
-(defn resolve-entity-name [entity-name]
+(defn- resolve-entity-name [entity-name]
   (eval (symbol (to-entity-name entity-name))))
 
 
-(defn resolve-table [entity-name]
+(defn resolve-table
+"Given the entity name, returns the Var containing the table definition"
+  [entity-name]
   (->> entity-name
        to-entity-name
        (symbol "mailjure.backend.core")
@@ -26,6 +33,17 @@
   (-> (nth body 1)
       var-get)
   :name)
+
+(defn get-entity-conf [entity-name]
+  ((keyword (to-entity-name entity-name)) @entities-config))
+
+(defn get-field-conf [entity-name field-name]
+  "Given an entity-name and a field-name, returns the configuration of that field
+  stored into the mljentities table"
+  (-> (get-entity-conf entity-name)
+      (get :fields)
+      (get (keyword field-name))))
+
 
 (defmacro with-conf [options entity-name & body]
   "with-conf must surround a Korma select form. This macro will assoc the select result map with
@@ -39,14 +57,8 @@ Refactoing so that the macro add a new meta containing the configuration so that
 result doesn't mix with the query results"
   `(let [has-conf# (get ~options :include-conf false)
          conf# (if has-conf#
-                 (->  (k/select "mljentities"
-                                (k/fields :configuration)
-                                (k/where {:alias (to-entity-name ~entity-name)}))
-                      first
-                      :configuration
-                      (ch/parse-string true)))]
-
-     (with-meta {:query ~@body}
+                 (get-entity-conf ~entity-name))]
+     (with-meta  ~@body
        {:configuration (if has-conf# conf#)})))
 
 
@@ -63,27 +75,45 @@ result doesn't mix with the query results"
     (k/select  (resolve-table ~entity-name)
                ~@body)))
 
+(defmulti convert (fn [entity-name field-name value]
+                    (let [conf (get-field-conf entity-name field-name)]
+                      (println "CONVERTING  " field-name " with value " value " AND ENTITY " entity-name)
+                      (println "conf :type is [[[" conf "]]]")
+                       (keyword (.toLowerCase (conf :type))))))
 
-(defmacro update-by-id [entity field-map & body]
-  "Generic abstraction for updating an entity by specifying its PK."
-  (if-let [id# (:id ~@field-map)]
-    `(k/sql-only (k/update ~entity
-               (k/set-fields (dissoc :id ~field-map))
-               (k/set-fields {:last-modified-date (Date.) :modified-by (:id (get-current-user)) })
-               (k/where { :id id#} )
-               ~@body
-               ))
-      (throw IllegalArgumentException "field-map must contain the primary ID")))
+(defmethod convert :integer [entity-name field-name value]
+  (if (and ( not (nil? value)) (not (empty? (seq (str value)))))
+    (Integer. value)))
 
-(defn get-field-conf [entity-name field-name]
-  "Given an entity-name and a field-name, returns the configuration of that field
-  stored into the mljentities table"
-  (let [conf (->  (k/select "mljentities"
-                                (k/fields :configuration)
-                                (k/where {:alias (to-entity-name entity-name)}))
-                      first
-                      :configuration
-                      (ch/parse-string true))]
-    (-> conf
-        (get :fields)
-        (get (keyword field-name)))))
+(defmethod convert :decimal [entity-name field-name value]
+  (Double. value))
+
+(defmethod convert :datetime [entity-name field-name value]
+  (if (not (nil? value))
+    (if (= (class value) java.sql.Timestamp)
+      value
+      (if (and (= (class value) java.lang.String) (not (s/blank?  value)))
+        (Timestamp. value)))))
+
+(defmethod convert :default [entity-name field-name value]
+  (str value))
+
+
+(defn before-storing
+  "This function will be called before storing an entity into the database. It's required in order to convert
+data coming from an HTTP Post/Get which consider everything to be a string, into its actual format on the DB."
+  [entity-name entity]
+  (reduce (fn [coll [k v]]
+              (assoc coll k (convert entity-name k v))) {} entity))
+
+
+(defn save-entity [entity-name entity]
+  (if-let [id (:id entity)]
+    (k/update (resolve-table entity-name)
+                (k/set-fields (merge entity {:last_modified_date (Timestamp. (System/currentTimeMillis)) :modified_by 1}))
+                (k/where {:id (Integer. id)}))
+    (k/insert (resolve-table entity-name)
+              (k/values (merge entity {:last-modified-date (Timestamp. (System/currentTimeMillis))
+                                       :creation_date (Timestamp. (System/currentTimeMillis))
+                                       :created_by 1
+                                       :modified-by 1})))))

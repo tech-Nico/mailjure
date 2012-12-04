@@ -6,7 +6,8 @@
                            [postgresql "9.1-901.jdbc4"]
                            [enlive "1.0.1"]
                            [noir "1.3.0-beta9"]
-                           [cheshire "4.0.3"]
-                           [metis "0.2.1"]]
+                           [cheshire "5.0.0"]
+                           [metis "0.2.1"]
+                           [clj-time "0.4.4"]]
 
                            :main mailjure.server)

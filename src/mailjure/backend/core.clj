@@ -3,9 +3,12 @@
            (java.util Date))
   (:use [korma.core])
   (:require [cheshire.core :as ch]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io]
+            [mailjure.backend.db :as db]))
 
 (defonce this-ns "mailjure.backend.core")
+
+
 
 (defn def-schema [entity db]
   "Given a map representing a mljentities row, define a new entity using korma defentity macro.
@@ -27,9 +30,12 @@ i.e. primary key, fields, field labels.. etc..."
                 (table table-name)
                 (pk  primaryk)
                 (entity-fields (into [] (map #(keyword %1) default-fields)))
+                (prepare (partial db/before-storing tbl-alias))
                 (database db)))
 
+    (swap! db/entities-config assoc (keyword tbl-alias) conf)
     (println "New var " (resolve (symbol (str this-ns "/" tbl-alias))) " initialized... ")
+
     nil))
 
 (defn init-entities [db]
