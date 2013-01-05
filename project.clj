@@ -8,6 +8,7 @@
                            [noir "1.3.0-beta9"]
                            [cheshire "5.0.0"]
                            [metis "0.2.1"]
-                           [clj-time "0.4.4"]]
+                           [clj-time "0.4.4"]
+                           [liberator "0.8.0"]]
 
                            :main mailjure.server)

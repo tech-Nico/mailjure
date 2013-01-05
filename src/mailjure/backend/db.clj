@@ -1,6 +1,7 @@
 (ns mailjure.backend.db
   (:require  [clojure.string :as s]
              [korma.core :as k]
+             [korma.db :as kdb]
              [clj-time.core :as t]
              [clj-time.format :as tf])
 
@@ -75,27 +76,27 @@ result doesn't mix with the query results"
     (k/select  (resolve-table ~entity-name)
                ~@body)))
 
-(defmulti convert (fn [entity-name field-name value]
+(defmulti string-to-> 
+  "Convert the given field-value to the type reflected by the field configuration. "
+  (fn [entity-name field-name value]
                     (let [conf (get-field-conf entity-name field-name)]
-                      (println "CONVERTING  " field-name " with value " value " AND ENTITY " entity-name)
-                      (println "conf :type is [[[" conf "]]]")
                        (keyword (.toLowerCase (conf :type))))))
 
-(defmethod convert :integer [entity-name field-name value]
+(defmethod string-to-> :integer [entity-name field-name value]
   (if (and ( not (nil? value)) (not (empty? (seq (str value)))))
     (Integer. value)))
 
-(defmethod convert :decimal [entity-name field-name value]
+(defmethod string-to-> :decimal [entity-name field-name value]
   (Double. value))
 
-(defmethod convert :datetime [entity-name field-name value]
-  (if (not (nil? value))
+(defmethod string-to-> :datetime [entity-name field-name value]
+  (when (not (nil? value))
     (if (= (class value) java.sql.Timestamp)
       value
-      (if (and (= (class value) java.lang.String) (not (s/blank?  value)))
-        (Timestamp. value)))))
+      (when (and (= (class value) java.lang.String) (not (s/blank?  value)))
+        (Timestamp/valueOf value)))))
 
-(defmethod convert :default [entity-name field-name value]
+(defmethod string-to-> :default [entity-name field-name value]
   (str value))
 
 
@@ -104,16 +105,39 @@ result doesn't mix with the query results"
 data coming from an HTTP Post/Get which consider everything to be a string, into its actual format on the DB."
   [entity-name entity]
   (reduce (fn [coll [k v]]
-              (assoc coll k (convert entity-name k v))) {} entity))
+              (assoc coll k (string-to-> entity-name k v))) {} entity))
 
+
+(defn update-entity [entity-name entity]
+  (let [id (Integer.  (:id entity))]
+    (k/update (resolve-table entity-name)
+              (k/set-fields (merge entity {:last_modified_date (Timestamp. (System/currentTimeMillis)) :modified_by 1}))
+              (k/where {:id id}))))
+
+(defn generate-userdef-id [entity-name]
+  (str entity-name (rand-int (Integer/MAX_VALUE))))
+
+(defn insert-entity [entity-name entity]
+  (let [userdef-id (or (:userdef_id entity) (generate-userdef-id entity-name))]
+   (k/insert (resolve-table entity-name)
+              (k/values (merge entity {:last_modified_date (Timestamp. (System/currentTimeMillis))
+                                       :creation_date      (Timestamp. (System/currentTimeMillis))
+                                       :created_by         1
+                                       :modified_by        1
+                               			   :userdef_id 				 userdef-id})))))
+
+(defn record-exists? 
+  "Determines whether the given entity corresponds to an existing entity on the database"
+  [entity-name entity]
+  (println "Call to record-existswith entityname = " entity-name " and entity = " entity)
+  (if-let [id (:id entity)]
+    (not (empty? (k/select (resolve-table entity-name)
+              (k/where {:id (Integer. id)}))))
+    (not (empty? (k/select (resolve-table entity-name)
+              (k/where {:userdef_id (:userdef_id entity)}))))))
+  
 
 (defn save-entity [entity-name entity]
-  (if-let [id (:id entity)]
-    (k/update (resolve-table entity-name)
-                (k/set-fields (merge entity {:last_modified_date (Timestamp. (System/currentTimeMillis)) :modified_by 1}))
-                (k/where {:id (Integer. id)}))
-    (k/insert (resolve-table entity-name)
-              (k/values (merge entity {:last-modified-date (Timestamp. (System/currentTimeMillis))
-                                       :creation_date (Timestamp. (System/currentTimeMillis))
-                                       :created_by 1
-                                       :modified-by 1})))))
+  (if (record-exists? entity-name entity)
+    (update-entity entity-name entity)
+    (insert-entity entity-name entity)))

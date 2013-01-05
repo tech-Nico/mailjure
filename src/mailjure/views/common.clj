@@ -1,7 +1,7 @@
 (ns mailjure.views.common
   (:use [noir.core :only [defpage defpartial]]
         [hiccup.core :only [html]]
-        [net.cgrand.enlive-html]))
+        [net.cgrand.enlive-html :only [deftemplate html-content content]]))
 
 (deftemplate layout-string "mailjure/views/container.html"
   [content-strings]

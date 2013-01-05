@@ -17,16 +17,18 @@
     true))
 
 (defmethod is-valid-type? "DECIMAL" [the-type field-value]
-  (try
+  (if-not (or (nil? field-value) (s/blank? field-value))
+    (try
       (do
         (Double. field-value)
-        ;In my opinion an integer is a valid decimal (i.e 10.0 should be equal to 10)
+                                        ;In my opinion an integer is a valid decimal (i.e 10.0 should be equal to 10)
         true)
       (catch Exception e (try
-                          (do
-                                (Integer. field-value)
-                            true)
-                          (catch Exception ex false)))))
+                           (do
+                             (Integer. field-value)
+                             true)
+                           (catch Exception ex false))))
+    true))
 
 (defmethod is-valid-type? "STRING" [the-type field-value]
   true)
@@ -34,12 +36,15 @@
 
 (defmethod is-valid-type? "EMAIL" [the-type field-value]
   (let [email-pattern #"[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?"]
-    (not (nil? (re-find email-pattern field-value)))
+    (if-not (or (nil? field-value) (s/blank? field-value))
+      (not (nil? (re-find email-pattern field-value)))
+      true)
     )
   )
 
 (defmethod is-valid-type? "DATETIME" [the-field field-value]
-
+  (println "CALL TO Isvalid FOR DATATIME " the-field " " field-value)
+  true
   )
 
 
@@ -47,22 +52,23 @@
   true)
 
 
-(defmulti valid? (fn [field-name field-value field-conf-prop]
+(defmulti valid? (fn [field-name field-value field-label field-conf-prop]
                    (key field-conf-prop)))
 
-(defmethod valid? :nullable [field-name field-value [k v]]
-  (let [is-nullable (= (.toUpperCase v) "TRUE")]
+(defmethod valid? :nullable [field-name field-value {:keys [en_gb]} [k v]]
+  (let [is-nullable (= (.toUpperCase v) "TRUE")
+        lbl ()]
     (when (and (not is-nullable) (s/blank? (str field-value)))
-        {:error :nullable :field field-name :message (str field-name " cannot be empty")}
+      {:error :nullable :field field-name :message (str en_gb " cannot be empty")}
     )))
 
-(defmethod valid? :type [field-name field-value [k v]]
+(defmethod valid? :type [field-name field-value {:keys [en_gb]} [k v]]
   (let [the-type (.toUpperCase v)]
     (when-not (is-valid-type? the-type field-value)
-        {:error :type :field field-name :message (str field-name " must be " the-type ". You provided " field-value)}
+      {:error :type :field field-name :message (str en_gb " must be " the-type ". You provided '" field-value "'")}
     )))
 
-(defmethod valid? :default [field-name field-value [k v]]
+(defmethod valid? :default [field-name field-value {:keys [en_gb]} [k v]]
   ;simply ignore any property which is not handled by this multimethod
   nil)
 
@@ -76,7 +82,7 @@
 
         ([entity-name field-name field-value when-not-valid when-valid]
           `(let [field-conf# (db/get-field-conf ~entity-name ~field-name)
-                 validation-map# (map #(valid? ~field-name ~field-value %) field-conf#)
+                 validation-map# (map #(valid? ~field-name ~field-value (:label field-conf#) %) field-conf#)
                  not-valid# (filter #(not (nil? %)) validation-map#)]
              (if (> (count not-valid#) 0)
                (let [~'error (first not-valid#)]
@@ -89,7 +95,7 @@
 '({:error :type :field the-field ...} "
   [entity-name field-name field-value]
   (let [field-conf     (db/get-field-conf entity-name field-name)
-        validation-map (map #(valid? field-name field-value %) field-conf)
+        validation-map (map #(valid? field-name field-value (:label field-conf) %) field-conf)
         not-valid      (filter #(not (nil? %)) validation-map)]
     (when (> (count not-valid) 0)
       {(keyword field-name) not-valid})))

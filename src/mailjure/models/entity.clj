@@ -1,9 +1,9 @@
 (ns mailjure.models.entity
-  (:require  [mailjure.backend.db :as d]
-             [mailjure.backend.core :as mcore]
+  (:require  [mailjure.backend.core :as mcore]
              [mailjure.models.validate :as v]
              [mailjure.backend.db :as d]
-             [mailjure.models.util :as u])
+             [mailjure.models.util :as u]
+             [korma.db :as kdb])
   (:use      [korma.core])
   (:import   [java.util Date]))
 
@@ -23,8 +23,8 @@ Given that mailjure will give access to the entit"
 
 
 (defmacro with-check-validity [entity-name & body]
-          "Surrounding a query form, this macro will check that the entity we are trying to query
-          is a 'managed' entity (entity listed in the mljentities table)"
+ "Surrounding a query form, this macro will check that the entity we are trying to query
+  is a 'managed' entity (entity listed in the mljentities table)"
   `(let [entity-var# (d/to-entity-name ~entity-name)]
     (if (and (valid-entity? entity-var#)
              (not (nil? (d/resolve-table entity-var#))))
@@ -60,9 +60,22 @@ If no options are specified list-entities will return only the first mailjure.mo
 
 (defn save-entity [entity-name entity]
   (with-check-validity entity-name
-    (if-let [errors (v/validate-entity entity-name entity)]
-      errors
-      (->> entity
-           (u/clean-entity entity-name)
-           (d/save-entity entity-name)
-           ))))
+    (let [errors (v/validate-entity entity-name entity)]
+      (println "ERRORS? " errors)
+      (if-not (or (nil? errors) (empty? errors))
+        errors
+        (do
+          (->> entity
+               (u/clean-entity entity-name)
+               (d/save-entity entity-name)
+               )
+          nil)))))
+
+
+(defn get-new-id [entity-name]
+ (kdb/transaction
+   (let [id  (-> (exec-raw [(str "select nextval('" entity-name "_id_seq')")] :results)
+                 first
+                 (get :nextval))]
+     (println "GET-NEW-ID WORKED: " id)
+     id)))

@@ -1,11 +1,3 @@
-<div id="editFormContainer" class="row display centered">
-<form action="/delivery/save" method="POST" id="editForm" name="editForm">
-<input type="hidden" name="_id" id="_id"/>
-<input type="hidden" name="save-action"/>
-<script type="text/javascript" src="/js/tiny_mce/tiny_mce.js"></script>
-
-<script type="text/javascript" language="javascript">
-
     tinyMCE.init({
                 // General options
                 mode : "textareas",
@@ -48,55 +40,3 @@
                         staffid : "991234"
                 }
         });
-</script>
-
-<div class="row display centered">
-   <input id="submit" type="submit" class="regular button" name="submit" value="Save"></input>
-   <button id="send" name="send" class="regular button" onclick="sendDelivery();" >Send</button>
-</div>
-
-   <div class="row" id="unique-idDiv">
-    <label>Unique Name</label>
-    <input type="text" name="userdef-id" id="userdef-id"/>
-    <small class="error">Please specify a unique name</small>
-   </div>
-   <div class="row" id="from-addressDiv">
-     <label>From:</label>
-     <input type="text" name="from-address" id="from-address"/>
-     <small class="error">From address is a mandatory field</small>
-   </div>
-   <div class="row"id="recipientsDiv">
-     <label>Recipients</label>
-     <input type="text" name="recipients" id="recipients"/>
-     <small class="error">Recipients is a mandatory field</small>
-  </div>
-
-   <div class="row" id="subjectDiv">
-     <label>Subject</label>
-     <input type="text" name="subject" id="subject"/>
-     <small class="error">Email subject is a mandatory field</small>
-  </div>
-
-  <div class="row" id="bodyDiv">
-   <label>Body</label>
-   <textarea  name="body" id="body" cols="40" rows="5"></textarea>
-   <small class="error" style="margin-top: 10px">Body is mandatory</small>
-  </div>
-
-   <script type="text/javascript" language="javascript">
-
-       function sendDelivery(){
-
-         document.getElementById("edit-form").setAttribute("action", '/delivery/send');
-         return true;
-
-     }
-
-   </script>
-<div class="row display centered">
-   <input id="submit" type="submit" class="regular button" name="submit" value="Save"></input>
-   <button id="send" name="send" class="regular button" onclick="sendDelivery();" >Send</button>
-</div>
-
-</form>
-</div>
