@@ -9,6 +9,21 @@
                            [cheshire "5.0.0"]
                            [metis "0.2.1"]
                            [clj-time "0.4.4"]
-                           [liberator "0.8.0"]]
+                           [liberator "0.8.0"]
 
-                           :main mailjure.server)
+                           ;; ClojureScript
+                           [jayq "0.1.0-alpha2"]
+                           [clj-http "0.4.3"]
+                           [clojail "1.0.3"]
+                           [fetch "0.1.0-alpha2"]
+                           [jayq "0.3.2"]
+                           [crate "0.2.2"]]
+            :plugins [[lein-cljsbuild "0.2.9"]]
+            :cljsbuild  {:builds
+                         [{:builds nil,
+                           :source-path "src-cljs",
+                           :compiler {:pretty-print true,
+                                      :output-to "resources/public/js/cljs.js",
+                                      :optimizations :simple}}]}
+
+            :main mailjure.server)
