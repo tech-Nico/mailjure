@@ -2,7 +2,8 @@
   (:require [mailjure.views.common :as common]
             [mailjure.models.entity :as d]
             [net.cgrand.enlive-html :as en]
-            [mailjure.backend.db :as db])
+            [mailjure.backend.db :as db]
+            [clojure.string :as s])
   (:use [noir.core]
         [noir.request]
         [hiccup.page]
@@ -15,34 +16,40 @@
   (link-to (str "/" entity-name "/edit/" (get entity :id)) label))
 
 
-(defn get-field-label 
+(defn get-field-label
   "Get the label of the specified field given the field conf map. For now it's always
   extracting the en_gb label. One day this will be I18N enabled."
   [field-conf-map]
   (->>  ((val field-conf-map) :label)
         (filter #(= (key %1) :en_gb))))
 
-(defn render-action 
+(defn render-action
   "Render the action buttons for each entity (i.e. Send delivery)"
-  [[action-name conf]]
-  (let [{action :action img :icon label :label} conf]
-    (html [:div [:a {:href "#"} (image {:onclick action :alt (:en_gb label)} (str "/images/"img))]])))
+  [[action-name conf] row]
+  (let [{:keys [id icon label href]} conf
+        nico (println "id IS " row)
+        href (-> href
+                 (or "#")
+                 (s/replace #"\{\{id\}\}" (str (:id row))))
+        ]
+    (html [:div [:a {:href href :id id} (image { :alt (:en_gb label)} (str "/images/" icon))]])))
 
 (defpartial render-row [entity-name field-conf actions id row]
   (html [ :tr  (if (= id (.toString (:id row))) {:class "highlight"})
            (map #(vector :td  (edit-link entity-name row ((key %1) row))) field-conf)
           ;Now... I should rendere an Icon for each action allowed on this entity.
-           [:td (map render-action actions) ]
+         [:td (map #(render-action %1 row) actions) ]
           ]))
 
 (defn show-list [entity-name id]
+  (println "LISTING ENTITIES FOR " entity-name)
   (let [rows (d/list-entities entity-name)
         conf        (db/get-entity-conf entity-name)
         field-conf (->>
                     (:fields conf)
-         						(filter #(>= (read-string (get (val %1)  :order)) 0))
-        				 		(sort-by #(get-in (val %1) [:order])))
-        actions 	  (:actions conf)]
+                                                        (filter #(>= (read-string (get (val %1)  :order)) 0))
+                                                        (sort-by #(get-in (val %1) [:order])))
+        actions           (:actions conf)]
     (html [:div.row.display.centered
            [:table
             [:thead

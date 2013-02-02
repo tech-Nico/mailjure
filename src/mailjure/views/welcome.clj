@@ -7,6 +7,7 @@
 (defpage "/" []
   (common/layout :enlive (html-resource "mailjure/views/welcome.html") ))
 
+
 ;(defpage "/" []
 ;  (common/layout->hiccup
 ;   [:h1 "HeyYYYYYYYYY.. this is the H1"]
